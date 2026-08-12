@@ -1,0 +1,1 @@
+pycache/ echo *.pyc echo *.pyo echo *.pyd echo venv/ echo .venv/ echo env/ echo ENV/ echo .env echo .env.local echo .env.production echo *.db echo *.sqlite echo *.sqlite3 echo .pytest_cache/ echo .coverage echo htmlcov/ echo .mypy_cache/ echo .ruff_cache/ echo .vscode/ echo .idea/ echo .DS_Store echo Thumbs.db echo *.log 

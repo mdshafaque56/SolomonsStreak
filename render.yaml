@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: solomons-streak
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: solomons-streak-db
+          property: connectionString
+      - key: OWNER_EMAIL
+        value: mdshafaque56@gmail.com
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: ACCESS_TOKEN_HOURS
+        value: 168
+databases:
+  - name: solomons-streak-db
+    plan: free
