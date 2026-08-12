@@ -24,7 +24,7 @@ class User(Base):
     created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),server_default=func.now())
 class UserStats(Base):
     __tablename__='user_stats'
-    user_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
+    user_id: Mapped[int]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
     score: Mapped[int]=mapped_column(Integer,default=0)
     current_streak: Mapped[int]=mapped_column(Integer,default=0)
     longest_streak: Mapped[int]=mapped_column(Integer,default=0)
@@ -44,7 +44,7 @@ class Task(Base):
 class FocusSession(Base):
     __tablename__='focus_sessions'
     id: Mapped[uuid.UUID]=mapped_column(primary_key=True,default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),index=True)
+    user_id: Mapped[int]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),index=True)
     minutes: Mapped[int]=mapped_column(Integer); completed_at: Mapped[datetime]=mapped_column(DateTime(timezone=True),server_default=func.now())
 class Follow(Base):
     __tablename__='follows'; __table_args__=(UniqueConstraint('follower_id','following_id'),)
@@ -59,7 +59,7 @@ class Conversation(Base):
 class ConversationMember(Base):
     __tablename__='conversation_members'; __table_args__=(UniqueConstraint('conversation_id','user_id'),)
     conversation_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('conversations.id',ondelete='CASCADE'),primary_key=True)
-    user_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
+    user_id: Mapped[int]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
     last_read_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
 class Message(Base):
     __tablename__='messages'; __table_args__=(Index('ix_messages_conversation_created','conversation_id','created_at'),)
@@ -76,7 +76,7 @@ class Post(Base):
 class PostLike(Base):
     __tablename__='post_likes'
     post_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('posts.id',ondelete='CASCADE'),primary_key=True)
-    user_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
+    user_id: Mapped[int]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),primary_key=True)
 class Comment(Base):
     __tablename__='comments'; __table_args__=(Index('ix_comments_post_created','post_id','created_at'),)
     id: Mapped[uuid.UUID]=mapped_column(primary_key=True,default=uuid.uuid4)
@@ -87,5 +87,5 @@ class Comment(Base):
 class RefreshToken(Base):
     __tablename__='refresh_tokens'
     id: Mapped[uuid.UUID]=mapped_column(primary_key=True,default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),index=True)
+    user_id: Mapped[int]=mapped_column(ForeignKey('users.id',ondelete='CASCADE'),index=True)
     token_hash: Mapped[str]=mapped_column(String(64),unique=True,index=True); expires_at: Mapped[datetime]=mapped_column(DateTime(timezone=True)); revoked: Mapped[bool]=mapped_column(Boolean,default=False)
