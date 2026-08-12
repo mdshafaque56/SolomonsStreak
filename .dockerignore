@@ -1,8 +1,6 @@
+.git
 .env
 __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
-.idea/
-.vscode/
-.DS_Store
