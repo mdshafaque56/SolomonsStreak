@@ -3,7 +3,7 @@ fd,path=tempfile.mkstemp(suffix='.db');os.close(fd)
 os.environ['DATABASE_URL']='sqlite:///'+path
 os.environ['SECRET_KEY']='test-secret'
 os.environ['OWNER_EMAIL']='mdshafaque56@gmail.com'
-os.environ['OWNER_PASSWORD']='Rafna123@'
+os.environ['OWNER_PASSWORD']='CHANGE_ME_ON_RENDER'
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -41,6 +41,6 @@ def test_owner_authorization():
     with TestClient(app) as c:
         user=login(c,'normal@example.com','Password123','Normal');hu=auth(user['access_token'])
         assert c.get('/api/admin/users',headers=hu).status_code==403
-        owner=login(c,'mdshafaque56@gmail.com','Rafna123@','Owner');ho=auth(owner['access_token'])
+        owner=login(c,'mdshafaque56@gmail.com','CHANGE_ME_ON_RENDER','Owner');ho=auth(owner['access_token'])
         users=c.get('/api/admin/users',headers=ho);assert users.status_code==200 and len(users.json())>=2
         export=c.get('/api/admin/export',headers=ho);assert export.status_code==200 and 'users' in export.json()

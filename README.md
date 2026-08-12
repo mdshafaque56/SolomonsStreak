@@ -1,51 +1,48 @@
-# Solomon's Streak Full Stack
+# Solomon's Streak FastAPI backend
 
-Production-oriented FastAPI application serving the final glassmorphism frontend and a complete persistence/social API.
+Production-oriented API for the supplied frontend. Every private record carries an owner/user foreign key and every endpoint derives the user from the access token. New accounts receive an empty task list and a `user_stats` row containing zeros.
 
-## Included
-
-- Signed bearer authentication with PBKDF2 password hashing
-- Fixed owner account supplied through environment variables
-- Profile completion, avatars, presence and last-seen status
-- Task CRUD, calendar-ready due dates, focus sessions and analytics
-- Persistent frontend state migration/synchronization
-- Discussions, likes, comments and nested replies
-- Following, people directory, private messages and WebSocket realtime transport
-- Owner-only user list, role control and data export
-- SQLite local development and PostgreSQL production support
-- Render Blueprint, Dockerfile, Procfile, health endpoint and API docs
-- Automated user, social, owner, API, persistence and frontend smoke tests
-
-## Local run
+## Run
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload
+# Replace SECRET_KEY
+docker compose up --build
 ```
 
-Open `http://localhost:8000`. API docs are at `/api/docs`.
+Open `http://localhost:8000/docs`.
 
-## Tests
+## Core behavior
 
-```bash
-pytest -q
-```
+- Registration creates a user and zeroed stats atomically.
+- Passwords use Argon2. Access tokens are short-lived; opaque refresh tokens are hashed in PostgreSQL and rotated.
+- Task completion is transactional and row-locks stats to avoid double awards.
+- Score: Low +10, Medium +15, High +20, completed focus minutes +1/minute; 7/30/100-day bonuses.
+- A day counts when at least one task is completed. Reopening rebuilds current streak from completion dates.
+- `/users` lists all active users except the caller and decorates follow, follows-me, and mutual status.
+- Direct conversation keys are canonical, so each pair gets exactly one room.
+- WebSocket messages are authenticated and stored before broadcast.
+- Community posts support feed sorting, author-only edits/deletes, likes, comments, and nested replies.
 
-## Render deployment
+## Frontend replacement map
 
-1. Push this folder to GitHub.
-2. In Render choose **New > Blueprint** and select the repository.
-3. Set `OWNER_PASSWORD` in Render to a secure secret. The requested prototype default is shown in `.env.example`, but changing it before a public deployment is strongly recommended.
-4. Deploy. `render.yaml` provisions the web service and PostgreSQL database.
+Replace localStorage calls with:
 
-Render uses `pip install -r requirements.txt` and starts `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+- Login/register: `/api/v1/auth/*`
+- Dashboard/profile: `/api/v1/users/me`, `/api/v1/progress`
+- Tasks/calendar: `/api/v1/tasks`
+- Focus completion: `/api/v1/progress/focus`
+- Make Friends: `/api/v1/users`, `/users/{id}/follow`
+- Chat: create `/api/v1/chat/direct/{id}`, load history, then connect `ws://host/api/v1/chat/ws/{conversation_id}?token=ACCESS_TOKEN`
+- Discussions: `/api/v1/discussions`
 
-## Important production notes
+Use `Authorization: Bearer <access_token>`. In a browser production deployment, prefer storing the refresh token in a Secure, HttpOnly, SameSite cookie. The sample returns it in JSON for framework-neutral integration.
 
-- Rotate `SECRET_KEY` and `OWNER_PASSWORD` before public release.
-- The adapter migrates the final frontend's local state into the signed-in user's server-side state record and continuously synchronizes changes.
-- For multi-instance WebSocket scale, replace the in-memory connection hub with Redis pub/sub.
-- Add Alembic migrations before changing production models after initial deployment.
+## Production hardening before launch
+
+1. Generate Alembic migrations and disable development `create_all`.
+2. Put API behind TLS and a reverse proxy.
+3. Add verified email, password reset, rate limiting, audit logs, moderation/reporting, block controls, and media scanning.
+4. Replace the process-local WebSocket hub with Redis Pub/Sub for multiple API replicas.
+5. Add tests, backups, observability, retention rules, and privacy/terms flows.
+6. Do not retain the hard-coded owner password visible in the supplied HTML. Rotate it immediately and remove that text from the frontend.
